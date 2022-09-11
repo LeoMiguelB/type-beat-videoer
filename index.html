@@ -7,10 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>type-beat-3</title>
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             height: 100%;
         }
+
         form {
             margin: auto;
             width: 50%;
@@ -23,6 +25,7 @@
             background-color: lightblue;
             border-radius: 30px;
         }
+
         .block {
             display: flex;
             align-items: center;
@@ -61,27 +64,31 @@
             padding: 6px 12px;
             cursor: pointer;
         }
+
+        h1 {
+            font-size: 12px;
+        }
     </style>
 </head>
 
 <body>
     <div class="block">
         <form class="form-container" action="http://localhost:5500" method="post" enctype="multipart/form-data">
-            <label for="filess" class="custom-file-upload">
+            <label for="filess" class="custom-file-upload" id="audio-upload">
                 Upload Audio (mp3 only)
             </label>
-            <input type="file" id="filess" name="materials" accept="audio/mp3" required size="200"/>
-            <label for="files" class="custom-file-upload">
+            <input type="file" id="filess" name="materials" accept="audio/mp3" required size="200" />
+            <label for="files" class="custom-file-upload" id="image-upload">
                 Upload Image (jpg only)
             </label>
-            <input type="file" id="files" name="material" accept="image/jpeg" required size="200"/>
-            <button id="button" type="submit" >Submit</button>
-            <button id="next-one" type="submit" >GENERATE ANOTHER VIDEO!</button>
+            <input type="file" id="files" name="material" accept="image/jpeg" required size="200" />
+            <button id="button" type="submit" disabled>SUBMIT</button>
+            <button id="next-one" type="reset">GENERATE ANOTHER VIDEO!</button>
         </form>
 
-        
-        
-        
+
+
+
     </div>
 </body>
 
@@ -105,86 +112,74 @@
 
     const { createFFmpeg, fetchFile } = FFmpeg;
 
-    const ffmpeg = createFFmpeg({
+
+    let videoMake = async () => {
+
+        const ffmpeg = createFFmpeg({
             progress: (e) => {
-                $("#button").prop("disabled", "true")
+                $("#button").prop("disabled", true)
                 $("#button").text("Processing Video " + Math.round(e.ratio * 100) + "%")
             }
         });
 
-        let videoMake = async () => {
+        const fileList = [...fileInput.files];
+        const fileListS = [...fileInputS.files];
 
-            if (firstFile && secondFile) {
-                const fileList = [...fileInput.files];
-                const fileListS = [...fileInputS.files];
+        await ffmpeg.load();
 
-                await ffmpeg.load();
+        let file = fileList[0];
 
-                let file = fileList[0];
+        console.log(file.name)
 
-                console.log(file.name)
+        let fileAudio = fileListS[0];
 
-                let fileAudio = fileListS[0];
+        console.log(fileAudio.name)
 
-                console.log(fileAudio.name)
+        ffmpeg.FS('writeFile', file.name, await fetchFile(file));
 
-                ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+        let response = await fetch('http://localhost:5500/getDuration', { method: 'GET' })
 
-                let response = await fetch('http://localhost:5500/getDuration', { method: 'GET' })
+        let rData = await response.json();
 
-                let rData = await response.json();
+        let timeInSec = rData.dur;
 
-                let timeInSec = rData.dur;
+        await ffmpeg.run('-framerate', `1/${timeInSec.toString()}`, '-i', file.name, '-c:v', 'libx264', '-t', timeInSec.toString(), '-pix_fmt', 'yuv420p', '-vf', 'scale=320:240', 'typebeat.mp4');
 
-                await ffmpeg.run('-framerate', `1/${timeInSec.toString()}`, '-i', file.name, '-c:v', 'libx264', '-t', timeInSec.toString(), '-pix_fmt', 'yuv420p', '-vf', 'scale=320:240', 'typebeat.mp4');
+        ffmpeg.FS('writeFile', fileAudio.name, await fetchFile(fileAudio));
 
-                ffmpeg.FS('writeFile', fileAudio.name, await fetchFile(fileAudio));
+        await ffmpeg.run('-i', 'typebeat.mp4', '-i', fileAudio.name, '-c', 'copy', '-map', '0:v:0', '-map', '1:a:0', 'output.mp4')
 
-                await ffmpeg.run('-i', 'typebeat.mp4', '-i', fileAudio.name, '-c', 'copy', '-map', '0:v:0', '-map', '1:a:0', 'output.mp4')
+        const data = ffmpeg.FS('readFile', 'output.mp4');
 
-                const data = ffmpeg.FS('readFile', 'output.mp4');
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(
+            new Blob([data.buffer], {
+                type: "video/mp4"
+            })
+        );
 
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(
-                    new Blob([data.buffer], {
-                        type: "video/mp4"
-                    })
-                );
+        link.textContent = 'CLICK HERE TO DOWNLOAD!'
 
-                link.textContent = 'CLICK HERE TO DOWNLOAD!'
+        link.id = 'link-video';
 
-                link.download = Date.now() + ".mp4";
+        link.download = Date.now() + ".mp4";
 
 
-                let form = document.querySelector('.form-container');
+        let form = document.querySelector('.form-container');
 
-                form.appendChild(link);
+        form.appendChild(link);
 
-                // link.click();
-                // document.body.removeChild(link);
+        // link.click();
+        // document.body.removeChild(link);
 
-                //reload page
-                // window.location.reload();
-            }
+        //reload page
+        // window.location.reload();
 
-        }
 
-        let showFiles = () => {
-
-            const fileList = [...fileInput.files];
-
-            let para = document.createElement('h1');
-
-            para.className = 'filesNames';
-
-            para.textContent = `Files: ${fileList[0].name}, ${fileList[1].name}`;
-
-            form.appendChild(para);
-        }
-
-    let reloadPage = () => {
-        input.value = '';
     }
+
+
+
 
     let form = document.querySelector('.form-container');
 
@@ -194,20 +189,58 @@
 
     const nextOne = document.querySelector('#next-one');
 
-    nextOne.addEventListener('click', reloadPage);
+    const btn = document.querySelector('#button');
+
+    let imageUpload = document.querySelector('#image-upload');
+    let audioUpload = document.querySelector('#audio-upload');
+
+    nextOne.addEventListener('click', () => {
+
+        imageUpload.textContent = 'Upload Image (jpg only)';
+
+        audioUpload.textContent = 'Upload Audio (mp3 only)';
+
+        $('#link-video').remove();
+
+        btn.textContent = 'SUBMIT';
+
+    })
 
     fileInput.addEventListener('change', () => {
+
+        const fileList = [...fileInput.files];
+
         firstFile = true;
+
+        console.log(firstFile)
+
+        imageUpload.textContent = `Image: ${fileList[0].name}`;
+
+        if (firstFile && secondFile) {
+            $('#button').prop('disabled', false);
+            console.log('working First')
+
+        }
+
     });
 
     fileInputS.addEventListener('change', () => {
+        const fileList = [...fileInputS.files];
+
         secondFile = true;
+
+        console.log(secondFile)
+
+        audioUpload.textContent = `Audio: ${fileList[0].name}`;
+
+        if (firstFile && secondFile) {
+            console.log('working S')
+            $('#button').prop('disabled', false);
+        }
     });
 
-    const btn = document.querySelector('button');
-
     btn.addEventListener("click", videoMake);
-
+    
 
 </script>
 

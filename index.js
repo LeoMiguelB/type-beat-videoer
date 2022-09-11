@@ -6,18 +6,14 @@ let bodyParser = require('body-parser');
 
 const app = express();
 
-const {getAudioDurationInSeconds} = require('get-audio-duration')
+const { getAudioDurationInSeconds } = require('get-audio-duration')
 
 const fs = require('fs');
-
-var jsonParser = bodyParser.json()
-
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 let fileN;
 
 app.use(upload());
-app.use(bodyParser.urlencoded({ extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
 
