@@ -46,7 +46,6 @@ app.get('/getDuration', async (req, res) => {
 
 
 app.post('/', (req, res) => {
-    console.log('workingFirst')
 
     if (req.files) {
 

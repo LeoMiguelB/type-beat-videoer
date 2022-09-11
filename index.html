@@ -114,10 +114,9 @@
 
         let videoMake = async () => {
 
-            // if (firstFile && secondFile) {
+            if (firstFile && secondFile) {
                 const fileList = [...fileInput.files];
                 const fileListS = [...fileInputS.files];
-
 
                 await ffmpeg.load();
 
@@ -166,14 +165,13 @@
 
                 //reload page
                 // window.location.reload();
-            // }
+            }
 
         }
 
         let showFiles = () => {
 
             const fileList = [...fileInput.files];
-
 
             let para = document.createElement('h1');
 
@@ -194,22 +192,17 @@
 
     const fileInputS = document.querySelector('#filess');
 
-
     const nextOne = document.querySelector('#next-one');
 
     nextOne.addEventListener('click', reloadPage);
 
     fileInput.addEventListener('change', () => {
         firstFile = true;
-        console.log('firstfile')
     });
 
     fileInputS.addEventListener('change', () => {
         secondFile = true;
-        console.log('second file')
     });
-
-
 
     const btn = document.querySelector('button');
 
