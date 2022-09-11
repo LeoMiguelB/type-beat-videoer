@@ -45,19 +45,22 @@ app.get('/getDuration', async (req, res) => {
 })
 
 
-app.post('/', (req,res) => {
-    if(req.files) {
+app.post('/', (req, res) => {
+    console.log('workingFirst')
 
-        let file = req.files.material[1];
+    if (req.files) {
+
+        let file = req.files.materials;
 
         let filename = fileN = file.name;
 
+        console.log(filename);
+
         file.mv('./uploads/' + filename, function (err) {
-            if(err) {
+            if (err) {
                 res.send(err);
             }
         })
-
     }
 })
 

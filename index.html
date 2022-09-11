@@ -67,13 +67,21 @@
 <body>
     <div class="block">
         <form class="form-container" action="http://localhost:5500" method="post" enctype="multipart/form-data">
-            <label for="files" class="custom-file-upload">
-                Upload 
+            <label for="filess" class="custom-file-upload">
+                Upload Audio (mp3 only)
             </label>
-            <input type="file" id="files" name="material" accept="image/*, audio/mp3" multiple required size="200"/>
+            <input type="file" id="filess" name="materials" accept="audio/mp3" required size="200"/>
+            <label for="files" class="custom-file-upload">
+                Upload Image (jpg only)
+            </label>
+            <input type="file" id="files" name="material" accept="image/jpeg" required size="200"/>
             <button id="button" type="submit" >Submit</button>
             <button id="next-one" type="submit" >GENERATE ANOTHER VIDEO!</button>
         </form>
+
+        
+        
+        
     </div>
 </body>
 
@@ -86,6 +94,9 @@
 
 <script>
 
+    //global variables 
+    let firstFile, secondFile = false;
+
     function getFileExtension(filename) {
         const extension = filename.split('.').pop();
 
@@ -94,74 +105,84 @@
 
     const { createFFmpeg, fetchFile } = FFmpeg;
 
-    const ffmpeg = createFFmpeg({ progress: (e) => {
-        $("#button").prop("disabled", "true")
-        $("#button").text("Processing Video " + Math.round(e.ratio * 100) + "%")
-    }});
+    const ffmpeg = createFFmpeg({
+            progress: (e) => {
+                $("#button").prop("disabled", "true")
+                $("#button").text("Processing Video " + Math.round(e.ratio * 100) + "%")
+            }
+        });
 
-    let videoMake = async () => {
+        let videoMake = async () => {
 
-        const fileList = [...fileInput.files];
-        
-        await ffmpeg.load();
-
-        let file = fileList[0];
-
-        let fileAudio = fileList[1];
-
-        ffmpeg.FS('writeFile', file.name, await fetchFile(file));
-
-        let response = await fetch ('http://localhost:5500/getDuration', {method: 'GET'})
-
-        let rData = await response.json();
-
-        let timeInSec = rData.dur;
-
-        await ffmpeg.run('-framerate', `1/${timeInSec.toString()}`, '-i', file.name, '-c:v', 'libx264', '-t', timeInSec.toString(), '-pix_fmt', 'yuv420p', '-vf', 'scale=320:240', 'typebeat.mp4');
-
-        ffmpeg.FS('writeFile', fileAudio.name, await fetchFile(fileAudio));
-
-        await ffmpeg.run('-i', 'typebeat.mp4', '-i', fileAudio.name, '-c', 'copy', '-map', '0:v:0', '-map', '1:a:0', 'output.mp4')
-
-        const data = ffmpeg.FS('readFile', 'output.mp4');
-         
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(
-            new Blob([data.buffer], {
-                type: "video/mp4"
-            })
-        );
-
-        link.textContent = 'CLICK HERE TO DOWNLOAD!'
-
-        link.download = Date.now() + ".mp4";
-
-        
-        let form = document.querySelector('.form-container');
-
-        form.appendChild(link);
-
-        // link.click();
-        // document.body.removeChild(link);
-        
-        //reload page
-        // window.location.reload();
-
-    }
-
-    let showFiles = () => {
-
-        const fileList = [...fileInput.files];
+            // if (firstFile && secondFile) {
+                const fileList = [...fileInput.files];
+                const fileListS = [...fileInputS.files];
 
 
-        let para = document.createElement('h1');
+                await ffmpeg.load();
 
-        para.className = 'filesNames';
+                let file = fileList[0];
 
-        para.textContent = `Files: ${fileList[0].name}, ${fileList[1].name}`;
+                console.log(file.name)
 
-        form.appendChild(para);
-    }
+                let fileAudio = fileListS[0];
+
+                console.log(fileAudio.name)
+
+                ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+
+                let response = await fetch('http://localhost:5500/getDuration', { method: 'GET' })
+
+                let rData = await response.json();
+
+                let timeInSec = rData.dur;
+
+                await ffmpeg.run('-framerate', `1/${timeInSec.toString()}`, '-i', file.name, '-c:v', 'libx264', '-t', timeInSec.toString(), '-pix_fmt', 'yuv420p', '-vf', 'scale=320:240', 'typebeat.mp4');
+
+                ffmpeg.FS('writeFile', fileAudio.name, await fetchFile(fileAudio));
+
+                await ffmpeg.run('-i', 'typebeat.mp4', '-i', fileAudio.name, '-c', 'copy', '-map', '0:v:0', '-map', '1:a:0', 'output.mp4')
+
+                const data = ffmpeg.FS('readFile', 'output.mp4');
+
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(
+                    new Blob([data.buffer], {
+                        type: "video/mp4"
+                    })
+                );
+
+                link.textContent = 'CLICK HERE TO DOWNLOAD!'
+
+                link.download = Date.now() + ".mp4";
+
+
+                let form = document.querySelector('.form-container');
+
+                form.appendChild(link);
+
+                // link.click();
+                // document.body.removeChild(link);
+
+                //reload page
+                // window.location.reload();
+            // }
+
+        }
+
+        let showFiles = () => {
+
+            const fileList = [...fileInput.files];
+
+
+            let para = document.createElement('h1');
+
+            para.className = 'filesNames';
+
+            para.textContent = `Files: ${fileList[0].name}, ${fileList[1].name}`;
+
+            form.appendChild(para);
+        }
 
     let reloadPage = () => {
         input.value = '';
@@ -171,17 +192,29 @@
 
     const fileInput = document.querySelector('#files');
 
+    const fileInputS = document.querySelector('#filess');
+
+
     const nextOne = document.querySelector('#next-one');
 
     nextOne.addEventListener('click', reloadPage);
 
-    fileInput.addEventListener('change', showFiles);
+    fileInput.addEventListener('change', () => {
+        firstFile = true;
+        console.log('firstfile')
+    });
+
+    fileInputS.addEventListener('change', () => {
+        secondFile = true;
+        console.log('second file')
+    });
+
+
 
     const btn = document.querySelector('button');
 
     btn.addEventListener("click", videoMake);
 
-    let input = document.querySelector('input');
 
 </script>
 
