@@ -100,8 +100,7 @@
 </script>
 
 <script>
-
-    //global variables 
+    
     let firstFile, secondFile = false;
 
     function getFileExtension(filename) {
@@ -129,11 +128,7 @@
 
         let file = fileList[0];
 
-        console.log(file.name)
-
         let fileAudio = fileListS[0];
-
-        console.log(fileAudio.name)
 
         ffmpeg.FS('writeFile', file.name, await fetchFile(file));
 
@@ -168,13 +163,6 @@
         let form = document.querySelector('.form-container');
 
         form.appendChild(link);
-
-        // link.click();
-        // document.body.removeChild(link);
-
-        //reload page
-        // window.location.reload();
-
 
     }
 
@@ -249,7 +237,6 @@
             tracker++;
 
             if (firstFile && secondFile && (tracker == 2)) {
-                console.log('working S')
                 $('#button').prop('disabled', false);
             }
         }else{
