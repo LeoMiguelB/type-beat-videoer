@@ -191,6 +191,8 @@
 
     const btn = document.querySelector('#button');
 
+    let tracker = 0;
+
     let imageUpload = document.querySelector('#image-upload');
     let audioUpload = document.querySelector('#audio-upload');
 
@@ -204,43 +206,63 @@
 
         btn.textContent = 'SUBMIT';
 
+        firstFile = false;
+
+        secondFile = false;
+
     })
 
     fileInput.addEventListener('change', () => {
 
-        const fileList = [...fileInput.files];
+        if (!(typeof fileInput.files[0] === 'undefined')) {
+            let fileF = fileInput.files[0].name;
 
-        firstFile = true;
+            firstFile = true;
 
-        console.log(firstFile)
+            imageUpload.textContent = `Image: ${fileF}`;
 
-        imageUpload.textContent = `Image: ${fileList[0].name}`;
+            tracker++;
 
-        if (firstFile && secondFile) {
-            $('#button').prop('disabled', false);
-            console.log('working First')
+            if (firstFile && secondFile && (tracker == 2)) {
+                $('#button').prop('disabled', false);
+                console.log('working First')
+
+            }
+        }else {
+            tracker--;
+            imageUpload.textContent = 'Upload Image (jpg only)';
+            $('#button').prop('disabled', true);
 
         }
 
     });
 
     fileInputS.addEventListener('change', () => {
-        const fileList = [...fileInputS.files];
 
-        secondFile = true;
+        if (!(typeof fileInputS.files[0] === 'undefined')) {
+            let fileS = fileInputS.files[0].name;
 
-        console.log(secondFile)
+            secondFile = true;
 
-        audioUpload.textContent = `Audio: ${fileList[0].name}`;
+            audioUpload.textContent = `Audio: ${fileS}`;
 
-        if (firstFile && secondFile) {
-            console.log('working S')
-            $('#button').prop('disabled', false);
+            tracker++;
+
+            if (firstFile && secondFile && (tracker == 2)) {
+                console.log('working S')
+                $('#button').prop('disabled', false);
+            }
+        }else{
+            tracker--;
+            audioUpload.textContent = 'Upload Audio (mp3 only)';
+            $('#button').prop('disabled', true);
+
         }
+
     });
 
     btn.addEventListener("click", videoMake);
-    
+
 
 </script>
 
