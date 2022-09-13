@@ -17,7 +17,7 @@
         form {
             margin: auto;
             width: 50%;
-            height: 40em;
+            height: 60em;
             display: flex;
             gap: 2em;
             flex-direction: column;
@@ -85,7 +85,6 @@
 </head>
 
 <body>
-
     <div class="block">
         <form class="form-container" action="http://localhost:5500" method="post" enctype="multipart/form-data">
             <h1>Type Beat Video Maker</h1>
@@ -100,10 +99,6 @@
             <button id="button" type="submit" disabled>SUBMIT</button>
             <button id="next-one" type="reset">GENERATE ANOTHER VIDEO!</button>
         </form>
-
-
-
-
     </div>
 </body>
 
@@ -174,8 +169,27 @@
 
         link.download = Date.now() + ".mp4";
 
-
         let form = document.querySelector('.form-container');
+
+        const media = document.createElement('video');
+
+        media.id = 'video-media';
+
+        media.height = '270';
+
+        media.width = '200';
+
+        media.controls = 'controls';
+
+        const source = document.createElement('source');
+
+        source.src = link.href;
+
+        source.type = 'video/mp4';
+
+        media.appendChild(source);
+
+        form.appendChild(media);
 
         form.appendChild(link);
 
@@ -212,6 +226,14 @@
         firstFile = false;
 
         secondFile = false;
+
+        tracker = 0;
+
+        $('#button').prop('disabled', true);
+
+        $('#video-media').empty();
+
+        $('#video-media').remove();
 
     })
 
